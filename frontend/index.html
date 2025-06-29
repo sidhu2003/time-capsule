@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Time Capsule App - Messages to the Future</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/amazon-cognito-identity-js@6.3.7/dist/amazon-cognito-identity.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .glass-effect {
+            backdrop-filter: blur(16px) saturate(180%);
+            background-color: rgba(255, 255, 255, 0.75);
+            border: 1px solid rgba(209, 213, 219, 0.3);
+        }
+        .floating-animation {
+            animation: float 6s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+        .fade-in {
+            animation: fadeIn 0.8s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="min-h-screen gradient-bg">
+    <!-- Navigation -->
+    <nav class="glass-effect border-b border-white/20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <i class="fas fa-clock text-2xl text-indigo-600 mr-2"></i>
+                    <span class="text-xl font-bold text-gray-800">Time Capsule</span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div id="user-menu" class="hidden">
+                        <span id="user-email" class="text-gray-600 mr-4"></span>
+                        <button id="logout-btn" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-colors">
+                            <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                        </button>
+                    </div>
+                    <div id="auth-buttons" class="space-x-2">
+                        <button id="login-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition-colors">
+                            <i class="fas fa-sign-in-alt mr-2"></i>Login
+                        </button>
+                        <button id="register-btn" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors">
+                            <i class="fas fa-user-plus mr-2"></i>Register
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        <!-- Landing Page -->
+        <div id="landing-page" class="text-center fade-in">
+            <div class="floating-animation mb-12">
+                <i class="fas fa-hourglass-half text-8xl text-white/80 mb-8"></i>
+            </div>
+            <h1 class="text-5xl font-bold text-white mb-6">
+                Send Messages to the Future
+            </h1>
+            <p class="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
+                Create time capsules with heartfelt messages, memories, and wishes. 
+                Schedule them to be delivered to yourself or loved ones at the perfect moment in time.
+            </p>
+            <div class="space-x-4">
+                <button id="get-started-btn" class="bg-white text-indigo-600 px-8 py-4 rounded-xl font-semibold hover:bg-gray-100 transition-colors text-lg">
+                    <i class="fas fa-rocket mr-2"></i>Get Started
+                </button>
+                <button id="learn-more-btn" class="border-2 border-white text-white px-8 py-4 rounded-xl font-semibold hover:bg-white hover:text-indigo-600 transition-colors text-lg">
+                    <i class="fas fa-info-circle mr-2"></i>Learn More
+                </button>
+            </div>
+        </div>
+
+        <!-- Auth Modal -->
+        <div id="auth-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+            <div class="glass-effect rounded-2xl p-8 max-w-md w-full mx-4">
+                <div id="login-form">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">
+                        <i class="fas fa-sign-in-alt mr-2"></i>Login
+                    </h2>
+                    <form id="login-form-element">
+                        <div class="mb-4">
+                            <label class="block text-gray-700 font-semibold mb-2">Email</label>
+                            <input type="email" id="login-email" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" required>
+                        </div>
+                        <div class="mb-6">
+                            <label class="block text-gray-700 font-semibold mb-2">Password</label>
+                            <input type="password" id="login-password" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" required>
+                        </div>
+                        <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-lg transition-colors">
+                            Login
+                        </button>
+                    </form>
+                    <p class="text-center mt-4 text-gray-600">
+                        Don't have an account? 
+                        <button id="switch-to-register" class="text-indigo-600 hover:underline">Register here</button>
+                    </p>
+                </div>
+
+                <div id="register-form" class="hidden">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">
+                        <i class="fas fa-user-plus mr-2"></i>Register
+                    </h2>
+                    <form id="register-form-element">
+                        <div class="mb-4">
+                            <label class="block text-gray-700 font-semibold mb-2">Email</label>
+                            <input type="email" id="register-email" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" required>
+                        </div>
+                        <div class="mb-4">
+                            <label class="block text-gray-700 font-semibold mb-2">Password</label>
+                            <input type="password" id="register-password" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" required>
+                        </div>
+                        <div class="mb-6">
+                            <label class="block text-gray-700 font-semibold mb-2">Confirm Password</label>
+                            <input type="password" id="register-confirm-password" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" required>
+                        </div>
+                        <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-lg transition-colors">
+                            Register
+                        </button>
+                    </form>
+                    <p class="text-center mt-4 text-gray-600">
+                        Already have an account? 
+                        <button id="switch-to-login" class="text-indigo-600 hover:underline">Login here</button>
+                    </p>
+                </div>
+
+                <div id="verify-form" class="hidden">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">
+                        <i class="fas fa-envelope-circle-check mr-2"></i>Verify Email
+                    </h2>
+                    <div class="mb-6 text-center">
+                        <p class="text-gray-600 mb-2">We've sent a verification code to:</p>
+                        <p id="verify-email-display" class="font-semibold text-gray-800"></p>
+                    </div>
+                    <form id="verify-form-element">
+                        <div class="mb-6">
+                            <label class="block text-gray-700 font-semibold mb-2">Verification Code</label>
+                            <input type="text" id="verify-code" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-center text-xl tracking-widest" placeholder="123456" maxlength="6" required>
+                            <p class="text-sm text-gray-500 mt-2">Enter the 6-digit code from your email</p>
+                        </div>
+                        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition-colors">
+                            Verify Email
+                        </button>
+                    </form>
+                    <div class="text-center mt-4">
+                        <button id="resend-code-btn" class="text-indigo-600 hover:underline text-sm">
+                            Resend verification code
+                        </button>
+                    </div>
+                    <p class="text-center mt-4 text-gray-600">
+                        <button id="back-to-login" class="text-indigo-600 hover:underline">Back to login</button>
+                    </p>
+                </div>
+
+                <button id="close-auth-modal" class="absolute top-4 right-4 text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Dashboard -->
+        <div id="dashboard" class="hidden">
+            <div class="flex justify-between items-center mb-8">
+                <h1 class="text-3xl font-bold text-white">
+                    <i class="fas fa-tachometer-alt mr-2"></i>Your Time Capsules
+                </h1>
+                <button id="create-capsule-btn" class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors">
+                    <i class="fas fa-plus mr-2"></i>Create Capsule
+                </button>
+            </div>
+
+            <!-- Capsules Grid -->
+            <div id="capsules-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                <!-- Capsules will be loaded here -->
+            </div>
+
+            <!-- Empty State -->
+            <div id="empty-state" class="text-center py-16 hidden">
+                <i class="fas fa-hourglass text-6xl text-white/50 mb-4"></i>
+                <h3 class="text-2xl font-semibold text-white mb-2">No Time Capsules Yet</h3>
+                <p class="text-white/80 mb-6">Create your first time capsule to send a message to the future!</p>
+                <button class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors">
+                    <i class="fas fa-plus mr-2"></i>Create Your First Capsule
+                </button>
+            </div>
+        </div>
+
+        <!-- Create/Edit Capsule Modal -->
+        <div id="capsule-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+            <div class="glass-effect rounded-2xl p-8 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+                <h2 id="capsule-modal-title" class="text-2xl font-bold text-gray-800 mb-6 text-center">
+                    <i class="fas fa-envelope mr-2"></i>Create Time Capsule
+                </h2>
+                
+                <form id="capsule-form">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <div>
+                            <label class="block text-gray-700 font-semibold mb-2">Title *</label>
+                            <input type="text" id="capsule-title" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" required>
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 font-semibold mb-2">Occasion</label>
+                            <select id="capsule-occasion" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                                <option value="">Select occasion...</option>
+                                <option value="birthday">Birthday</option>
+                                <option value="anniversary">Anniversary</option>
+                                <option value="graduation">Graduation</option>
+                                <option value="new-year">New Year</option>
+                                <option value="personal-reminder">Personal Reminder</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-6">
+                        <label class="block text-gray-700 font-semibold mb-2">Recipient Email *</label>
+                        <input type="email" id="capsule-recipient" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" required>
+                    </div>
+
+                    <div class="mb-6">
+                        <label class="block text-gray-700 font-semibold mb-2">Delivery Date *</label>
+                        <input type="datetime-local" id="capsule-date" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" required>
+                    </div>
+
+                    <div class="mb-6">
+                        <label class="block text-gray-700 font-semibold mb-2">Your Message *</label>
+                        <textarea id="capsule-message" rows="6" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none" placeholder="Write your message to the future..." required></textarea>
+                    </div>
+
+                    <div class="mb-6">
+                        <label class="block text-gray-700 font-semibold mb-2">Attach Images (optional)</label>
+                        <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-indigo-500 transition-colors">
+                            <input type="file" id="capsule-files" multiple accept="image/*" class="hidden">
+                            <div id="file-drop-zone" class="cursor-pointer">
+                                <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-2"></i>
+                                <p class="text-gray-600 mb-2">Click to upload or drag and drop images</p>
+                                <p class="text-sm text-gray-500">PNG, JPG, GIF up to 10MB each</p>
+                            </div>
+                        </div>
+                        <div id="file-preview" class="mt-4 grid grid-cols-2 md:grid-cols-3 gap-4 hidden"></div>
+                        <div id="upload-progress" class="mt-4 hidden">
+                            <div class="bg-gray-200 rounded-full h-2">
+                                <div id="progress-bar" class="bg-indigo-600 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                            </div>
+                            <p class="text-sm text-gray-600 mt-2" id="upload-status">Uploading...</p>
+                        </div>
+                    </div>
+
+                    <div class="mb-6">
+                        <label class="block text-gray-700 font-semibold mb-2">Tags (optional)</label>
+                        <input type="text" id="capsule-tags" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" placeholder="family, memories, goals (comma-separated)">
+                    </div>
+
+                    <div class="flex justify-between">
+                        <button type="button" id="close-capsule-modal" class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors">
+                            Cancel
+                        </button>
+                        <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors">
+                            <i class="fas fa-save mr-2"></i>Save Capsule
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Features Section -->
+        <div id="features-section" class="hidden">
+            <div class="text-center mb-12">
+                <h2 class="text-4xl font-bold text-white mb-6">How It Works</h2>
+                <p class="text-xl text-white/90 max-w-3xl mx-auto">
+                    Create meaningful connections across time with our simple three-step process
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="glass-effect p-8 rounded-2xl text-center">
+                    <i class="fas fa-pencil-alt text-4xl text-indigo-600 mb-4"></i>
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">Write Your Message</h3>
+                    <p class="text-gray-600">Compose heartfelt messages, memories, or goals. Add photos, videos, or voice recordings to make it special.</p>
+                </div>
+                
+                <div class="glass-effect p-8 rounded-2xl text-center">
+                    <i class="fas fa-calendar-alt text-4xl text-green-600 mb-4"></i>
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">Schedule Delivery</h3>
+                    <p class="text-gray-600">Choose the perfect moment - next year, in 5 years, or on a special date. We'll deliver it exactly when intended.</p>
+                </div>
+                
+                <div class="glass-effect p-8 rounded-2xl text-center">
+                    <i class="fas fa-heart text-4xl text-red-600 mb-4"></i>
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">Receive & Cherish</h3>
+                    <p class="text-gray-600">Experience the joy of receiving your message from the past, bringing back memories and emotions.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div id="loading" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+        <div class="glass-effect p-8 rounded-2xl text-center">
+            <i class="fas fa-spinner fa-spin text-4xl text-indigo-600 mb-4"></i>
+            <p class="text-gray-800 font-semibold">Loading...</p>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="fixed top-4 right-4 glass-effect p-4 rounded-lg hidden z-50">
+        <div class="flex items-center">
+            <i id="toast-icon" class="text-xl mr-3"></i>
+            <span id="toast-message"></span>
+        </div>
+    </div>
+
+    <!-- Image Viewer Modal -->
+    <div id="image-modal" class="fixed inset-0 bg-black bg-opacity-75 hidden flex items-center justify-center z-50">
+        <div class="relative max-w-4xl max-h-full p-4">
+            <img id="modal-image" src="" alt="Full size image" class="max-w-full max-h-full object-contain rounded-lg">
+            <button id="close-image-modal" class="absolute top-2 right-2 bg-black bg-opacity-50 text-white rounded-full w-10 h-10 flex items-center justify-center hover:bg-opacity-75 transition-colors">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    </div>
+
+    <script src="config.js"></script>
+    <script src="app.js"></script>
+    <script>
+        // Initialize the Time Capsule App
+        console.log('DOM loading, window.CONFIG:', window.CONFIG);
+        console.log('TimeCapsuleApp class available:', typeof TimeCapsuleApp);
+        
+        let app;
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM content loaded, initializing app...');
+            try {
+                app = new TimeCapsuleApp();
+                window.app = app;
+                console.log('App initialized successfully:', app);
+            } catch (error) {
+                console.error('Failed to initialize app:', error);
+            }
+        });
+    </script>
+</body>
+</html>

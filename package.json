@@ -1,0 +1,39 @@
+{
+  "name": "time-capsule-app",
+  "version": "1.0.0",
+  "description": "A serverless application for sending messages to the future",
+  "main": "serverless.yml",
+  "scripts": {
+    "deploy": "serverless deploy",
+    "deploy:dev": "serverless deploy --stage dev",
+    "deploy:prod": "serverless deploy --stage prod",
+    "remove": "serverless remove",
+    "logs": "serverless logs -f deliverCapsules -t",
+    "invoke": "serverless invoke -f deliverCapsules",
+    "local": "serverless offline",
+    "test": "echo \"No tests specified\" && exit 0"
+  },
+  "keywords": [
+    "serverless",
+    "aws",
+    "lambda",
+    "time-capsule",
+    "email",
+    "scheduling"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "devDependencies": {
+    "serverless": "^3.38.0",
+    "serverless-python-requirements": "^6.0.0",
+    "serverless-offline": "^13.3.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/time-capsule-app.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/time-capsule-app/issues"
+  },
+  "homepage": "https://github.com/yourusername/time-capsule-app#readme"
+} 

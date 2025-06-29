@@ -1,0 +1,57 @@
+# Time Capsule App Environment Configuration
+# Copy this file to config.local and update with your actual values
+
+# AWS Configuration
+AWS_REGION=us-east-1
+AWS_PROFILE=default
+
+# Deployment Configuration
+STAGE=dev
+SERVICE_NAME=time-capsule-app
+
+# Email Configuration (Amazon SES)
+FROM_EMAIL=noreply@yourdomain.com
+# Note: This email must be verified in SES before deployment
+
+# Database Configuration
+DYNAMODB_TABLE_NAME=${SERVICE_NAME}-${STAGE}-capsules
+
+# Storage Configuration
+S3_BUCKET_NAME=${SERVICE_NAME}-${STAGE}-storage
+
+# Frontend Configuration
+FRONTEND_URL=http://localhost:8000
+# Production: https://your-domain.com
+
+# API Configuration
+API_GATEWAY_DOMAIN=
+# Optional: Custom domain for API Gateway
+
+# Cognito Configuration
+COGNITO_USER_POOL_NAME=${SERVICE_NAME}-${STAGE}-user-pool
+COGNITO_CLIENT_NAME=${SERVICE_NAME}-${STAGE}-client
+
+# Monitoring Configuration
+CLOUDWATCH_LOG_RETENTION_DAYS=30
+
+# Security Configuration
+CORS_ORIGINS=*
+# Production: https://your-domain.com,https://www.your-domain.com
+
+# Feature Flags
+ENABLE_FILE_UPLOAD=true
+ENABLE_EMAIL_NOTIFICATIONS=true
+ENABLE_DETAILED_LOGGING=true
+
+# Delivery Configuration
+DELIVERY_CHECK_INTERVAL=1 hour
+# Options: rate(1 hour), rate(30 minutes), cron(0 * * * ? *)
+
+# Limits
+MAX_MESSAGE_SIZE=10000
+MAX_FILE_SIZE=10485760
+# File size in bytes (10MB default)
+
+# Development Configuration
+LOCAL_DEV_PORT=8000
+LOCAL_API_PORT=3000 
